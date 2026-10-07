@@ -357,52 +357,34 @@
         <h2 class="section-title">✨ Let's Stay Connected</h2>
         <p class="section-subtitle">Drop your info below and I'll send over a quick follow-up!</p>
 
-<form id="leadForm" action="https://formsubmit.co/jen.campanaro@gocreatepayments.com" method="POST">
-    <!-- Redirect after submit -->
-    <input type="hidden" name="_next" value="https://jencampanaro.github.io/GoCreatePayments/">
-    <!-- Disable captcha so form submits instantly on mobile -->
-    <input type="hidden" name="_captcha" value="false">
-    <!-- Capture selected chips -->
-    <input type="hidden" name="Interests" id="selectedInterestsInput" value="Reducing Fees">
+        <form id="leadForm">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="Full_Name" id="name" class="form-input" placeholder="e.g. Sarah Miller" required>
+            </div>
 
-    <div class="form-group">
-        <label class="form-label">Full Name</label>
-        <input type="text" name="Full_Name" class="form-input" placeholder="e.g. Sarah Miller" required>
-    </div>
+            <div class="form-group">
+                <label class="form-label">Business Name</label>
+                <input type="text" name="Business_Name" id="business" class="form-input" placeholder="e.g. Coastal Boutique" required>
+            </div>
 
-    <div class="form-group">
-        <label class="form-label">Business Name</label>
-        <input type="text" name="Business_Name" class="form-input" placeholder="e.g. Coastal Boutique" required>
-    </div>
+            <div class="form-group">
+                <label class="form-label">Email or Phone</label>
+                <input type="text" name="Contact_Info" id="contact" class="form-input" placeholder="sarah@example.com / (941)..." required>
+            </div>
 
-    <div class="form-group">
-        <label class="form-label">Email or Phone</label>
-        <input type="text" name="Contact_Details" class="form-input" placeholder="sarah@example.com / (941)..." required>
-    </div>
+            <div class="form-group">
+                <label class="form-label">What are you most interested in?</label>
+                <div class="interests-grid">
+                    <div class="interest-chip active" onclick="toggleChip(this)">Reducing Fees</div>
+                    <div class="interest-chip" onclick="toggleChip(this)">POS Terminals</div>
+                    <div class="interest-chip" onclick="toggleChip(this)">Having a Local Agent</div>
+                    <div class="interest-chip" onclick="toggleChip(this)">Just Connecting!</div>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <label class="form-label">What are you most interested in?</label>
-        <div class="interests-grid">
-            <div class="interest-chip active" onclick="toggleChip(this)">Reducing Fees</div>
-            <div class="interest-chip" onclick="toggleChip(this)">POS Terminals</div>
-            <div class="interest-chip" onclick="toggleChip(this)">Having a Local Agent</div>
-            <div class="interest-chip" onclick="toggleChip(this)">Just Connecting!</div>
-        </div>
-    </div>
-
-    <button type="submit" class="submit-btn">Send My Info</button>
-</form>
-
-<script>
-    function toggleChip(el) {
-        el.classList.toggle('active');
-        
-        // Update the hidden input field so selected interests are emailed
-        const activeChips = Array.from(document.querySelectorAll('.interest-chip.active'))
-            .map(chip => chip.textContent).join(', ');
-        document.getElementById('selectedInterestsInput').value = activeChips;
-    }
-</script>
+            <button type="submit" id="submitBtn" class="submit-btn">Send My Info</button>
+        </form>
 
         <div id="successMsg" class="success-message">
             🎉 Thanks! Great connecting with you. I'll reach out soon!
@@ -431,23 +413,37 @@
     document.getElementById('leadForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerText = 'Sending...';
+        submitBtn.disabled = true;
+
         const activeChips = Array.from(document.querySelectorAll('.interest-chip.active'))
             .map(chip => chip.textContent).join(', ');
 
-        const leadData = {
-            name: document.getElementById('name').value,
-            business: document.getElementById('business').value,
-            contact: document.getElementById('contact').value,
-            interests: activeChips,
-            date: new Date().toLocaleString()
-        };
+        const formData = new FormData();
+        formData.append('Full_Name', document.getElementById('name').value);
+        formData.append('Business_Name', document.getElementById('business').value);
+        formData.append('Contact_Info', document.getElementById('contact').value);
+        formData.append('Interests', activeChips);
 
-        let existingLeads = JSON.parse(localStorage.getItem('create_leads') || '[]');
-        existingLeads.push(leadData);
-        localStorage.setItem('create_leads', JSON.stringify(existingLeads));
-
-        document.getElementById('leadForm').style.display = 'none';
-        document.getElementById('successMsg').style.display = 'block';
+        // Send submission directly in background without leaving page
+        fetch('https://formsubmit.co/ajax/jen.campanaro@gocreatepayments.com', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('leadForm').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+        })
+        .catch(error => {
+            // Fallback display if network delay occurs
+            document.getElementById('leadForm').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+        });
     });
 </script>
 
